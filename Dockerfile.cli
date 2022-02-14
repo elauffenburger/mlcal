@@ -1,0 +1,16 @@
+# Builder
+FROM golang:1.18beta-rc-alpine as builder
+WORKDIR "/cli"
+
+COPY . .
+
+RUN go mod download
+RUN go build ./cmd/cli -o ./build/cli
+
+# Actual container
+FROM alpine
+WORKDIR "/cli"
+
+COPY --from=builder "/cli" .
+
+ENTRYPOINT ["bash"]
