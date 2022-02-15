@@ -30,9 +30,7 @@ func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Dur
 	calMtx := sync.Mutex{}
 
 	// Grab the calendar.
-	calMtx.Lock()
 	cal, err := calFetcher.Fetch()
-	calMtx.Unlock()
 	if err != nil {
 		panic(errors.Wrapf(err, "error fetching calendar"))
 	}
@@ -66,10 +64,8 @@ func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Dur
 	}
 
 	return func(c *gin.Context) {
-		getCalendar(c, cal)
+		calMtx.Lock()
+		c.String(200, "%s", cal)
+		calMtx.Unlock()
 	}
-}
-
-func getCalendar(c *gin.Context, icsCal string) {
-	c.String(200, "%s", icsCal)
 }

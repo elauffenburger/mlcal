@@ -45,7 +45,7 @@ func main() {
 					calFetcher,
 					&calRefreshInterval,
 					func(s string, i ...interface{}) {
-						fmt.Printf(s, i...)
+						fmt.Printf("[calendar]: %s", fmt.Sprintf(s, i...))
 						fmt.Println()
 					},
 				),
