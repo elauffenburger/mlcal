@@ -1,16 +1,16 @@
-# Builder
-FROM golang:1.18beta2-alpine3.15 as builder
+# Run the build.
+FROM golang:1.17 as builder
 WORKDIR "/cli"
 
 COPY . .
 
 RUN go mod download
-RUN go build ./cmd/cli -o ./build/cli
+RUN CGO_ENABLED=0 GOOS=linux go build -o cli ./cmd/cli 
 
-# Actual container
-FROM alpine
+# Build the actual container.
+FROM alpine:latest
 WORKDIR "/cli"
 
 COPY --from=builder "/cli" .
 
-ENTRYPOINT ["bash"]
+CMD ["sh", "-c", "./cli --email ${ML_EMAIL} --password ${ML_PASSWORD} --course ${ML_COURSE}"]

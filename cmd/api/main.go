@@ -12,7 +12,7 @@ func main() {
 	icsCal, err := loadICSCal(
 		os.Getenv("ML_EMAIL"),
 		os.Getenv("ML_PASSWORD"),
-		os.Getenv("ML_CLASS"),
+		os.Getenv("ML_COURSE"),
 	)
 	if err != nil {
 		fmt.Println(err)
