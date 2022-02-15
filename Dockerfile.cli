@@ -1,5 +1,5 @@
 # Builder
-FROM golang:1.18beta-rc-alpine as builder
+FROM golang:1.18beta2-alpine3.15 as builder
 WORKDIR "/cli"
 
 COPY . .
