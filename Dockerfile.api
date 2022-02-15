@@ -1,0 +1,16 @@
+# Run the build.
+FROM golang:1.17 as builder
+WORKDIR "/api"
+
+COPY . .
+
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api 
+
+# Build the actual container.
+FROM alpine:latest
+WORKDIR "/api"
+
+COPY --from=builder "/api" .
+
+CMD ["sh", "-c", "./api --email ${ML_EMAIL} --password ${ML_PASSWORD} --course ${ML_COURSE}"]

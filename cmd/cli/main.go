@@ -19,13 +19,11 @@ func main() {
 	cmd := cobra.Command{
 		Use: "mlcal",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			courseID := cmd.Flag(flagCourse).Value.String()
-
 			// Make a new Musical Literacy client.
 			client, err := mlcal.NewClient(
 				cmd.Flag(flagEmail).Value.String(),
 				cmd.Flag(flagPassword).Value.String(),
-				courseID,
+				cmd.Flag(flagCourse).Value.String(),
 			)
 			if err != nil {
 				return err
