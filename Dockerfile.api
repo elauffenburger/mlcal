@@ -13,4 +13,11 @@ WORKDIR "/api"
 
 COPY --from=builder "/api" .
 
-CMD ["sh", "-c", "./api --email ${ML_EMAIL} --password ${ML_PASSWORD} --course ${ML_COURSE}"]
+CMD [ \
+    "sh", "-c", \
+    "./api \
+    --email ${ML_EMAIL} \
+    --password ${ML_PASSWORD} \
+    --course ${ML_COURSE} \
+    --refresh ${ML_REFRESH_INTERVAL}" \
+]
