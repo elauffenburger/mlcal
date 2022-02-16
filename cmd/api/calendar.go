@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"sync"
 	"time"
 
@@ -27,6 +28,7 @@ func newIcsCalFetcher(client mlcal.Client) *icsCalFetcher {
 }
 
 func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Duration, log func(string, ...interface{})) gin.HandlerFunc {
+	lastFetched := time.Now()
 	calMtx := sync.Mutex{}
 
 	// Grab the calendar.
@@ -55,6 +57,7 @@ func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Dur
 
 				// Update the local cal.
 				calMtx.Lock()
+				lastFetched = time.Now()
 				cal = newCal
 				calMtx.Unlock()
 
@@ -64,6 +67,9 @@ func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Dur
 	}
 
 	return func(c *gin.Context) {
+		c.Header("Content-Type", "text/calendar")
+		c.Header("Last-Modified", lastFetched.Format(http.TimeFormat))
+
 		calMtx.Lock()
 		c.String(200, "%s", cal)
 		calMtx.Unlock()
