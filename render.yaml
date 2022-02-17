@@ -8,6 +8,7 @@ services:
     numInstances: 1
     healthCheckPath: /calendar?text
     envVars:
+      - fromGroup: mlcal-api
       - key: REDIS_HOST
         fromRedis:
           name: mlcal-api-redis
@@ -16,7 +17,8 @@ services:
         fromRedis:
           name: mlcal-api-redis
           property: port
-      - fromGroup: mlcal-api
+      - key: PORT
+        value: 80
 redises:
   - name: mlcal-api-redis
     plan: ephemeral
