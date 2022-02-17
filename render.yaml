@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mlcalc-api
+    name: mlcal-api
     env: docker
     repo: https://github.com/elauffenburger/mlcal
     plan: free
@@ -10,13 +10,13 @@ services:
     envVars:
       - key: REDIS_HOST
         fromRedis:
-          name: mlcalc-api-redis
+          name: mlcal-api-redis
           property: host
       - key: REDIS_PORT
         fromRedis:
           name: mlcal-api-redis
           property: port
-      - fromGroup: mlcalc-api
+      - fromGroup: mlcal-api
 redises:
-  - name: mlcalc-api-redis
+  - name: mlcal-api-redis
     plan: ephemeral
