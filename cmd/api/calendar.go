@@ -67,7 +67,7 @@ func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Dur
 	}
 
 	return func(c *gin.Context) {
-		if c.Query("text") != "" {
+		if c.DefaultQuery("text", "none") != "none" {
 			c.Header("Content-Type", "text")
 		} else {
 			c.Header("Content-Type", "text/calendar")
