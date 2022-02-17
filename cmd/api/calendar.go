@@ -67,7 +67,12 @@ func makeGetCalendarHandler(calFetcher *icsCalFetcher, refreshInterval *time.Dur
 	}
 
 	return func(c *gin.Context) {
-		c.Header("Content-Type", "text/calendar")
+		if c.Query("text") != "" {
+			c.Header("Content-Type", "text")
+		} else {
+			c.Header("Content-Type", "text/calendar")
+		}
+
 		c.Header("Last-Modified", lastFetched.Format(http.TimeFormat))
 
 		calMtx.Lock()
