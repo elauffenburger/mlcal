@@ -19,4 +19,4 @@ services:
       - fromGroup: mlcalc-api
 redises:
   - name: mlcalc-api-redis
-    plan: free
+    plan: ephemeral
