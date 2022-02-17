@@ -2,6 +2,7 @@ services:
   - type: web
     name: mlcal-api
     env: docker
+    dockerfilePath: "Dockerfile.api"
     repo: https://github.com/elauffenburger/mlcal
     plan: free
     branch: main
