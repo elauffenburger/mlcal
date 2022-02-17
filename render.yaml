@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: mlcalc-api
+    env: docker
+    repo: https://github.com/elauffenburger/mlcal
+    plan: free
+    branch: main
+    numInstances: 1
+    healthCheckPath: /calendar?text
+    envVars:
+      - key: REDIS_HOST
+        fromRedis:
+          name: mlcalc-api-redis
+          property: host
+      - key: REDIS_PORT
+        fromRedis:
+          name: mlcal-api-redis
+          property: port
+      - fromGroup: mlcalc-api
+redises:
+  - name: mlcalc-api-redis
+    plan: free
