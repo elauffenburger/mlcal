@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
+	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar"
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -16,40 +17,33 @@ const (
 	flagPassword        string = "password"
 	flagCourse          string = "course"
 	flagRefreshInterval string = "refresh"
+	flagRedisUrl        string = "redis-url"
 )
 
 func main() {
 	cmd := cobra.Command{
 		Use: "api",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			calClient, err := mlcal.NewClient(
-				cmd.Flag(flagEmail).Value.String(),
-				cmd.Flag(flagPassword).Value.String(),
-				cmd.Flag(flagCourse).Value.String(),
+			// Create an AutoRefresher that can fetch the calendar on an interval.
+			// Uses the calendar client to re-fetch calendars.
+			// Uses an in-memory cache to store and retrieve the calendar.
+			autoCalRefresher := calendar.NewAutoRefresher(
+				log.New(os.Stdout, "[calendar] ", log.LstdFlags),
+				mlcal.MustNewClient(
+					cmd.Flag(flagEmail).Value.String(),
+					cmd.Flag(flagPassword).Value.String(),
+					cmd.Flag(flagCourse).Value.String(),
+				),
+				calendar.NewInMemoryCache(),
 			)
-			if err != nil {
-				return errors.Wrap(err, "error creating musical literacy client")
-			}
 
-			calFetcher := newIcsCalFetcher(calClient)
-			calRefreshInterval, err := time.ParseDuration(cmd.Flag(flagRefreshInterval).Value.String())
-			if err != nil {
-				return errors.Wrap(err, "error parsing cal refresh duration")
-			}
+			// Kick off the refresh and set up a refresh on an interval.
+			autoCalRefresher.Refresh()
+			go autoCalRefresher.RefreshOnInterval(mustParseDuration(cmd.Flag(flagRefreshInterval).Value.String()))
 
 			// Start server.
 			r := gin.Default()
-			r.GET(
-				"/calendar",
-				makeGetCalendarHandler(
-					calFetcher,
-					&calRefreshInterval,
-					func(s string, i ...interface{}) {
-						fmt.Printf("[calendar]: %s", fmt.Sprintf(s, i...))
-						fmt.Println()
-					},
-				),
-			)
+			r.GET("/calendar", calendar.MakeGetCalendarHandler(autoCalRefresher))
 
 			return r.Run()
 		},
@@ -66,8 +60,19 @@ func main() {
 
 	cmd.Flags().String(flagRefreshInterval, "24h", "the calendar refresh interval in time.ParseDuration format")
 
+	cmd.Flags().String(flagRedisUrl, "", "the url to use for redis; if omitted, results will be persisted in memory")
+
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "error running mlcal api: %s\n", err)
 		os.Exit(1)
 	}
+}
+
+func mustParseDuration(str string) time.Duration {
+	d, err := time.ParseDuration(str)
+	if err != nil {
+		panic(err)
+	}
+
+	return d
 }

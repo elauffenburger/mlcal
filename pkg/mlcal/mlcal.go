@@ -1,7 +1,6 @@
 package mlcal
 
 import (
-	"fmt"
 	"time"
 
 	ics "github.com/arran4/golang-ical"
@@ -9,6 +8,7 @@ import (
 )
 
 type Calendar struct {
+	Date        time.Time
 	Assignments []Assignment
 }
 
@@ -24,7 +24,8 @@ func (c *Calendar) ToICS() *ics.Calendar {
 
 	now := time.Now()
 	for _, a := range c.Assignments {
-		e := cal.AddEvent(fmt.Sprintf("%s-%s", a.Title, uuid.NewString()))
+		e := cal.AddEvent(uuid.NewString())
+		e.SetDtStampTime(a.Due)
 		e.SetCreatedTime(now)
 		e.SetAllDayStartAt(a.Due)
 		e.SetSummary(a.Title)

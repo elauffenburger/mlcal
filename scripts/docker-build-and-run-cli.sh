@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 function log() {
     if [ -z $VERBOSE ]; then
@@ -32,7 +33,7 @@ if [ -z "${ML_PASSWORD}" ]; then
 fi
 
 if [ -z "${RUN_ONLY}" ]; then
-    docker build -f Dockerfile.cli -t mlcalc-cli .
+    docker build -f Dockerfile.cli -t mlcal-cli .
 else
     log "-r provided; skipping build"
 fi
@@ -41,5 +42,5 @@ docker run -it \
     --env ML_EMAIL=$ML_EMAIL \
     --env ML_PASSWORD=$ML_PASSWORD \
     --env ML_COURSE=$ML_COURSE \
-    --name mlcalc-cli \
-    mlcalc-cli 
+    --name mlcal-cli \
+    mlcal-cli 

@@ -24,6 +24,7 @@ const actionGetGrades string = "getgradesforstudent"
 
 type Client interface {
 	Get() (*Calendar, error)
+	GetICS() (string, error)
 }
 
 type client struct {
@@ -42,13 +43,22 @@ func (c *client) Get() (*Calendar, error) {
 		return nil, err
 	}
 
-	// Grab the grades.
-	grades, err := c.getAssignments()
+	// Grab the assignments.
+	assignments, err := c.getAssignments()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Calendar{grades}, nil
+	return &Calendar{time.Now(), assignments}, nil
+}
+
+func (c *client) GetICS() (string, error) {
+	cal, err := c.Get()
+	if err != nil {
+		return "", err
+	}
+
+	return cal.ToICS().Serialize(), err
 }
 
 func (c *client) getAssignments() ([]Assignment, error) {
@@ -170,4 +180,13 @@ func NewClient(email, password, courseID string) (Client, error) {
 	}
 
 	return &client{&httpClient, email, password, courseID}, nil
+}
+
+func MustNewClient(email, password, courseID string) Client {
+	client, err := NewClient(email, password, courseID)
+	if err != nil {
+		panic(err)
+	}
+
+	return client
 }

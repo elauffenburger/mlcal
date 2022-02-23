@@ -19,5 +19,7 @@ CMD [ \
     --email ${ML_EMAIL} \
     --password ${ML_PASSWORD} \
     --course ${ML_COURSE} \
-    --refresh ${ML_REFRESH_INTERVAL}" \
+    --refresh ${ML_REFRESH_INTERVAL} \
+    --redis-url \"${REDIS_HOST}:${REDIS_PORT}\" \
+    " \
 ]
