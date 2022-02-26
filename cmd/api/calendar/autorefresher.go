@@ -4,25 +4,27 @@ import (
 	"log"
 	"time"
 
+	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar/calcache"
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 )
 
-type AutoRefresherCache struct {
+// AutoRefresher refreshes a calendar on a given interval that can later be retrieved.
+type AutoRefresher struct {
 	logger *log.Logger
 
-	g     Getter
-	cache Cache
+	getter calcache.Getter
+	cache  calcache.Cache
 }
 
-func NewAutoRefresher(logger *log.Logger, getter Getter, cache Cache) *AutoRefresherCache {
-	return &AutoRefresherCache{logger, getter, cache}
+func NewAutoRefresher(logger *log.Logger, getter calcache.Getter, cache calcache.Cache) *AutoRefresher {
+	return &AutoRefresher{logger, getter, cache}
 }
 
-func (g *AutoRefresherCache) Refresh() error {
+func (g *AutoRefresher) Refresh() error {
 	g.logger.Printf("refreshing calendar...")
 
 	// Refresh the calendar.
-	cal, err := g.g.Get()
+	cal, err := g.getter.Get()
 	if err != nil {
 		g.logger.Printf("error fetching calendar: %s", err)
 		return err
@@ -38,7 +40,7 @@ func (g *AutoRefresherCache) Refresh() error {
 	return nil
 }
 
-func (g *AutoRefresherCache) RefreshOnInterval(refreshInterval time.Duration) {
+func (g *AutoRefresher) RefreshOnInterval(refreshInterval time.Duration) {
 	for {
 		_ = g.Refresh()
 
@@ -48,11 +50,11 @@ func (g *AutoRefresherCache) RefreshOnInterval(refreshInterval time.Duration) {
 	}
 }
 
-func (g *AutoRefresherCache) Get() (*mlcal.Calendar, error) {
+func (g *AutoRefresher) Get() (*mlcal.Calendar, error) {
 	return g.cache.Get()
 }
 
-func (g *AutoRefresherCache) GetICS() (string, error) {
+func (g *AutoRefresher) GetICS() (string, error) {
 	cal, err := g.Get()
 	if err != nil {
 		return "", err

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar"
+	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar/calcache"
+	"github.com/elauffenburger/musical-literacy-cal/cmd/api/resource"
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -34,17 +36,18 @@ func main() {
 					cmd.Flag(flagPassword).Value.String(),
 					cmd.Flag(flagCourse).Value.String(),
 				),
-				calendar.NewInMemoryCache(),
+				calcache.NewInMemoryCache(),
 			)
 
 			// Kick off the refresh and set up a refresh on an interval.
 			autoCalRefresher.Refresh()
 			go autoCalRefresher.RefreshOnInterval(mustParseDuration(cmd.Flag(flagRefreshInterval).Value.String()))
 
-			// Start server.
+			// Set up our server.
 			r := gin.Default()
-			r.GET("/calendar", calendar.MakeGetCalendarHandler(autoCalRefresher))
+			r.GET("/calendar", resource.Handler(calendar.MakeGetCalendarResource(autoCalRefresher)))
 
+			// Start server.
 			return r.Run()
 		},
 	}
