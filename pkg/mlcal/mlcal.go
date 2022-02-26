@@ -1,6 +1,7 @@
 package mlcal
 
 import (
+	"fmt"
 	"time"
 
 	ics "github.com/arran4/golang-ical"
@@ -13,8 +14,9 @@ type Calendar struct {
 }
 
 type Assignment struct {
-	Title string
-	Due   time.Time
+	Title     string
+	Due       time.Time
+	MaxPoints int
 }
 
 func (c *Calendar) ToICS() *ics.Calendar {
@@ -29,7 +31,7 @@ func (c *Calendar) ToICS() *ics.Calendar {
 		e.SetCreatedTime(now)
 		e.SetAllDayStartAt(a.Due)
 		e.SetSummary(a.Title)
-		e.SetDescription(a.Title)
+		e.SetDescription(fmt.Sprintf("%s\n(%d pts)", a.Title, a.MaxPoints))
 	}
 
 	return cal

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -92,8 +93,9 @@ func (c *client) getAssignments() ([]Assignment, error) {
 
 	var resBody struct {
 		Assignments []struct {
-			Title   string `json:"title"`
-			DueDate string `json:"duedate"`
+			Title     string `json:"title"`
+			DueDate   string `json:"duedate"`
+			MaxPoints string `json:"maxpoints"`
 		} `json:"Assignments"`
 	}
 
@@ -111,7 +113,12 @@ func (c *client) getAssignments() ([]Assignment, error) {
 			return nil, err
 		}
 
-		assignments = append(assignments, Assignment{a.Title, dueDate})
+		maxPoints, err := strconv.Atoi(a.MaxPoints)
+		if err != nil {
+			return nil, err
+		}
+
+		assignments = append(assignments, Assignment{a.Title, dueDate, maxPoints})
 	}
 
 	return assignments, nil
