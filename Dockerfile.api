@@ -20,6 +20,6 @@ CMD [ \
     --password ${ML_PASSWORD} \
     --course ${ML_COURSE} \
     --refresh ${ML_REFRESH_INTERVAL} \
-    ${ADDITIONAL_ARGS} \
+    --redis-addr \"${REDIS_HOST}:${REDIS_PORT}\" \
     " \
 ]
