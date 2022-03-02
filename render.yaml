@@ -20,6 +20,8 @@ services:
           property: port
       - key: PORT
         value: 80
+      - key: ADDITIONAL_ARGS
+        value: "--redis-addr=\"${REDIS_HOST}:${REDIS_PORT}\""
 redises:
   - name: mlcal-api-redis
     plan: ephemeral
