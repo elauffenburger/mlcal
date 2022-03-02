@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar/calcache"
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 )
 
@@ -12,50 +11,67 @@ import (
 type AutoRefresher struct {
 	logger *log.Logger
 
-	getter calcache.Getter
-	cache  calcache.Cache
+	getter Getter
+	cache  Cache
+
+	refreshed chan struct{}
 }
 
-func NewAutoRefresher(logger *log.Logger, getter calcache.Getter, cache calcache.Cache) *AutoRefresher {
-	return &AutoRefresher{logger, getter, cache}
+func NewAutoRefresher(logger *log.Logger, getter Getter, cache Cache) *AutoRefresher {
+	return &AutoRefresher{logger, getter, cache, make(chan struct{})}
 }
 
-func (g *AutoRefresher) Refresh() error {
-	g.logger.Printf("refreshing calendar...")
+func (r *AutoRefresher) Refresh() error {
+	r.logger.Printf("refreshing calendar...")
 
 	// Refresh the calendar.
-	cal, err := g.getter.Get()
+	cal, err := r.getter.Get()
 	if err != nil {
-		g.logger.Printf("error fetching calendar: %s", err)
+		r.logger.Printf("error fetching calendar: %s", err)
 		return err
 	}
 
-	err = g.cache.Set(cal)
+	err = r.cache.Set(cal)
 	if err != nil {
-		g.logger.Printf("error caching calendar: %s", err)
+		r.logger.Printf("error caching calendar: %s", err)
 		return err
 	}
 
-	g.logger.Printf("refreshed calendar")
+	r.logger.Printf("refreshed calendar")
+	select {
+	case r.refreshed <- struct{}{}:
+	default:
+	}
 	return nil
 }
 
-func (g *AutoRefresher) RefreshOnInterval(refreshInterval time.Duration) {
-	for {
-		_ = g.Refresh()
+func (r *AutoRefresher) RefreshOnInterval(refreshInterval time.Duration, logger *log.Logger) {
+	r.Refresh()
 
+	for {
 		// Wait for the refresh interval.
-		g.logger.Printf("waiting %s to refresh calendar", refreshInterval)
-		<-time.After(refreshInterval)
+		logger.Printf("waiting %s to refresh calendar", refreshInterval)
+
+		select {
+		// Wait until the refresh inverval passes.
+		case <-time.After(refreshInterval):
+
+		// ...but if the calendar is refreshed, skip this scheduled refresh.
+		case <-r.refreshed:
+			logger.Print("calendar manually refreshed; resetting refresh timer.")
+			continue
+		}
+
+		_ = r.Refresh()
 	}
 }
 
-func (g *AutoRefresher) Get() (*mlcal.Calendar, error) {
-	return g.cache.Get()
+func (r *AutoRefresher) Get() (*mlcal.Calendar, error) {
+	return r.cache.Get()
 }
 
-func (g *AutoRefresher) GetICS() (string, error) {
-	cal, err := g.Get()
+func (r *AutoRefresher) GetICS() (string, error) {
+	cal, err := r.Get()
 	if err != nil {
 		return "", err
 	}

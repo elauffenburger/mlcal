@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar/calcache"
 	"github.com/elauffenburger/musical-literacy-cal/cmd/api/resource"
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 	"github.com/gin-gonic/gin"
@@ -27,7 +26,7 @@ func (r *calendarResource) Write(c *gin.Context) {
 	c.String(200, "%s", r.cal.ToICS().Serialize())
 }
 
-func MakeGetCalendarResource(calGetter calcache.Getter) resource.HandlerFunc {
+func MakeGetCalendarResource(calGetter Getter) resource.HandlerFunc {
 	return func(c *gin.Context) (resource.Resource, error) {
 		// Grab the calendar.
 		cal, err := calGetter.Get()

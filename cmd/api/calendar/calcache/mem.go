@@ -4,19 +4,19 @@ import (
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 )
 
-type inMemoryCalendarCache struct {
+type InMemoryCalendarCache struct {
 	calendar *mlcal.Calendar
 }
 
-func NewInMemoryCache() Cache {
-	return &inMemoryCalendarCache{}
+func NewInMemoryCache() *InMemoryCalendarCache {
+	return &InMemoryCalendarCache{}
 }
 
-func (s *inMemoryCalendarCache) Get() (*mlcal.Calendar, error) {
+func (s *InMemoryCalendarCache) Get() (*mlcal.Calendar, error) {
 	return s.calendar, nil
 }
 
-func (s *inMemoryCalendarCache) GetICS() (string, error) {
+func (s *InMemoryCalendarCache) GetICS() (string, error) {
 	if s.calendar == nil {
 		return "", nil
 	}
@@ -24,7 +24,7 @@ func (s *inMemoryCalendarCache) GetICS() (string, error) {
 	return s.calendar.ToICS().Serialize(), nil
 }
 
-func (s *inMemoryCalendarCache) Set(cal *mlcal.Calendar) error {
+func (s *InMemoryCalendarCache) Set(cal *mlcal.Calendar) error {
 	s.calendar = cal
 
 	return nil

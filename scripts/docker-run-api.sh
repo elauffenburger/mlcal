@@ -50,7 +50,7 @@ if docker ps | grep mlcal-api-redis; then
 fi
 
 # Start up redis.
-docker run -d --name mlcal-api-redis --network mlcal-api-net redis
+docker run -d --name mlcal-api-redis --network mlcal-api-net -p 1337:6379 redis
 
 # Start up the api.
 docker run -it --rm --network mlcal-api-net \
@@ -62,6 +62,7 @@ docker run -it --rm --network mlcal-api-net \
     --env REDIS_PORT=$REDIS_PORT \
     --name mlcal-api \
     $EXTRA_API_DOCKER_ARGS \
+    -p 8080:8080 \
     mlcal-api
 
 # Clean up.

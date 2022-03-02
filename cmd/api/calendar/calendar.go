@@ -1,4 +1,4 @@
-package calcache
+package calendar
 
 import "github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 

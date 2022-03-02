@@ -29,7 +29,7 @@ func main() {
 			// Create an AutoRefresher that can fetch the calendar on an interval.
 			// Uses the calendar client to re-fetch calendars.
 			// Uses an in-memory cache to store and retrieve the calendar.
-			autoCalRefresher := calendar.NewAutoRefresher(
+			calRefresher := calendar.NewAutoRefresher(
 				log.New(os.Stdout, "[calendar] ", log.LstdFlags),
 				mlcal.MustNewClient(
 					cmd.Flag(flagEmail).Value.String(),
@@ -40,12 +40,16 @@ func main() {
 			)
 
 			// Kick off the refresh and set up a refresh on an interval.
-			autoCalRefresher.Refresh()
-			go autoCalRefresher.RefreshOnInterval(mustParseDuration(cmd.Flag(flagRefreshInterval).Value.String()))
+			calRefresher.Refresh()
+			go calRefresher.RefreshOnInterval(
+				mustParseDuration(cmd.Flag(flagRefreshInterval).Value.String()),
+				log.New(os.Stdout, "[calendar-refresher]: ", log.LstdFlags),
+			)
 
 			// Set up our server.
 			r := gin.Default()
-			r.GET("/calendar", resource.Handler(calendar.MakeGetCalendarResource(autoCalRefresher)))
+			r.GET("/calendar", resource.Handler(calendar.MakeGetCalendarResource(calRefresher)))
+			r.GET("/calendar/refresh", calendar.MakeRefreshCalendarEndpoint(calRefresher))
 
 			// Start server.
 			return r.Run()
