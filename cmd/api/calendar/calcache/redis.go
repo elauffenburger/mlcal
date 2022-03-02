@@ -13,26 +13,30 @@ type redisCalValue struct {
 	Calendar mlcal.Calendar
 }
 
-type RedisCalendarService struct {
-	client redis.Client
+type RedisCache struct {
+	client *redis.Client
 }
 
-func (s *RedisCalendarService) Get() (*mlcal.Calendar, error) {
+func NewRedisCache(client *redis.Client) *RedisCache {
+	return &RedisCache{client}
+}
+
+func (s *RedisCache) Get() (*mlcal.Calendar, error) {
 	calValueStr, err := s.client.Get(redisCalKey).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	var cal mlcal.Calendar
+	var cal redisCalValue
 	err = json.Unmarshal([]byte(calValueStr), &cal)
 	if err != nil {
 		return nil, err
 	}
 
-	return &cal, nil
+	return &cal.Calendar, nil
 }
 
-func (s *RedisCalendarService) GetICS() (string, error) {
+func (s *RedisCache) GetICS() (string, error) {
 	cal, err := s.Get()
 	if err != nil {
 		return "", err
@@ -41,7 +45,7 @@ func (s *RedisCalendarService) GetICS() (string, error) {
 	return cal.ToICS().Serialize(), nil
 }
 
-func (s *RedisCalendarService) Set(cal *mlcal.Calendar) error {
+func (s *RedisCache) Set(cal *mlcal.Calendar) error {
 	calValue := redisCalValue{*cal}
 	calValueBytes, err := json.Marshal(&calValue)
 	if err != nil {

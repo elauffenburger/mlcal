@@ -42,6 +42,7 @@ func (r *AutoRefresher) Refresh() error {
 	case r.refreshed <- struct{}{}:
 	default:
 	}
+
 	return nil
 }
 

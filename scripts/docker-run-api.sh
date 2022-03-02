@@ -38,6 +38,10 @@ if [ -n "${USE_LOCAL_VOLUME}" ]; then
     EXTRA_API_DOCKER_ARGS="$EXTRA_API_DOCKER_ARGS --entrypoint sh"
 fi
 
+if [ -n "${REDIS_ADDR}" ]; then
+    EXTRA_API_DOCKER_ARGS="$EXTRA_API_DOCKER_ARGS --redis-addr=$REDIS_ADDR"
+fi
+
 # Create a network for services to share.
 if ! docker network ls | grep mlcal-api-net; then
     docker network create mlcal-api-net
