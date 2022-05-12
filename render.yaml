@@ -23,4 +23,7 @@ services:
         value: 80
   - type: redis
     name: mlcal-api-redis
-    plan: ephemeral
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+    plan: free
