@@ -21,6 +21,6 @@ services:
           property: port
       - key: PORT
         value: 80
-  - redis:
-    - name: mlcal-api-redis
-      plan: ephemeral
+  - type: redis
+    name: mlcal-api-redis
+    plan: ephemeral
