@@ -12,11 +12,11 @@ services:
     envVars:
       - fromGroup: mlcal-api
       - key: REDIS_HOST
-        fromRedis:
+        fromService:
           name: mlcal-api-redis
           property: host
       - key: REDIS_PORT
-        fromRedis:
+        fromService:
           name: mlcal-api-redis
           property: port
       - key: PORT
