@@ -14,10 +14,12 @@ services:
       - key: REDIS_HOST
         fromService:
           name: mlcal-api-redis
+          type: redis
           property: host
       - key: REDIS_PORT
         fromService:
           name: mlcal-api-redis
+          type: redis
           property: port
       - key: PORT
         value: 80
