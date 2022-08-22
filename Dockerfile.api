@@ -9,7 +9,7 @@ Server: netcat!
 <html><body><h1>A webpage served by netcat</h1></body></html>
 EOF
 
-RUN echo <<EOF >> ./serve.sh \
+RUN echo <<EOF >> ./serve.sh
 while true; do cat index.http | nc -l 80; done
 EOF
 
