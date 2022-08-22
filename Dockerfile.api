@@ -1,25 +1,18 @@
-# Run the build.
-FROM golang:1.17 as builder
-WORKDIR "/api"
-
-COPY . .
-
-RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api 
-
-# Build the actual container.
 FROM alpine:latest
-WORKDIR "/api"
 
-COPY --from=builder "/api" .
+RUN echo <<EOF >> ./index.http
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Server: netcat!
 
-CMD [ \
-    "sh", "-c", \
-    "./api \
-    --email ${ML_EMAIL} \
-    --password ${ML_PASSWORD} \
-    --course ${ML_COURSE} \
-    --refresh ${ML_REFRESH_INTERVAL} \
-    --redis-addr \"${REDIS_HOST}:${REDIS_PORT}\" \
-    " \
-]
+<!doctype html>
+<html><body><h1>A webpage served by netcat</h1></body></html>
+EOF
+
+RUN echo <<EOF >> ./serve.sh \
+while true; do cat index.http | nc -l 80; done
+EOF
+
+RUN chmod +x ./serve.sh
+
+CMD ["./serve.sh"]
