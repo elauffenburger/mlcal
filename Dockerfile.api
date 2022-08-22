@@ -10,7 +10,7 @@ Server: netcat!
 EOF
 
 RUN echo <<EOF >> ./serve.sh
-\#!/usr/bin/env bash
+#!/usr/bin/env bash
 while true; do cat index.http | nc -l 80; done
 EOF
 
