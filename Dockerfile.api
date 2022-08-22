@@ -1,19 +1,6 @@
 FROM alpine:latest
 
-RUN echo <<EOF >> ./index.http
-HTTP/1.1 200 OK
-Content-Type: text/html; charset=UTF-8
-Server: netcat!
-
-<!doctype html>
-<html><body><h1>A webpage served by netcat</h1></body></html>
-EOF
-
-RUN echo <<EOF >> ./serve.sh
-#!/usr/bin/env bash
-while true; do cat index.http | nc -l 80; done
-EOF
-
-RUN chmod +x ./serve.sh
+COPY ./scripts/serve.sh .
+COPY index .
 
 CMD ["./serve.sh"]
