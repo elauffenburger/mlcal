@@ -3,4 +3,4 @@ FROM alpine:latest
 COPY ./scripts/serve.sh .
 COPY index .
 
-CMD ["./serve.sh"]
+CMD ["./scripts/serve.sh"]
