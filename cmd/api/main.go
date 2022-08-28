@@ -90,11 +90,7 @@ func main() {
 
 	cmd.Flags().String(flagRefreshInterval, "24h", "the calendar refresh interval in time.ParseDuration format")
 
-	cmd.Flags().String(
-		flagRedisAddr,
-		"",
-		"the connection string to use for redis. If not provided, an in-memory cache wil be used instead",
-	)
+	cmd.Flags().String(flagRedisAddr, "", "the connection string to use for redis. If not provided, an in-memory cache wil be used instead")
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "error running mlcal api: %s\n", err)

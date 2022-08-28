@@ -2,7 +2,9 @@
 FROM golang:1.17 as builder
 WORKDIR "/api"
 
-COPY . .
+COPY pkg pkg
+COPY cmd cmd
+COPY go.* .
 
 RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api 
@@ -13,13 +15,8 @@ WORKDIR "/api"
 
 COPY --from=builder "/api" .
 
-CMD [ \
-    "sh", "-c", \
-    "./api \
-    --email ${ML_EMAIL} \
-    --password ${ML_PASSWORD} \
-    --course ${ML_COURSE} \
-    --refresh ${ML_REFRESH_INTERVAL} \
-    --redis-addr \"${REDIS_HOST}:${REDIS_PORT}\" \
-    " \
-]
+RUN apk add bash
+
+COPY scripts scripts
+
+CMD ["./scripts/run.sh"]
