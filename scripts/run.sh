@@ -7,4 +7,4 @@ args=(
     "--refresh $ML_REFRESH_INTERVAL"
 )
 
-./api "${args[@]}"
+./api ${args[@]}
