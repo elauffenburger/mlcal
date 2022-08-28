@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar"
 	"github.com/elauffenburger/musical-literacy-cal/cmd/api/calendar/calcache"
-	"github.com/elauffenburger/musical-literacy-cal/cmd/api/resource"
 	"github.com/elauffenburger/musical-literacy-cal/pkg/mlcal"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
@@ -18,7 +18,7 @@ import (
 const (
 	flagEmail           string = "email"
 	flagPassword        string = "password"
-	flagCourse          string = "course"
+	flagCourseID        string = "course"
 	flagRefreshInterval string = "refresh"
 	flagRedisAddr       string = "redis-addr"
 )
@@ -28,7 +28,28 @@ func main() {
 		Use: "api",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Set up our server.
-			r := gin.Default()
+			srv := gin.Default()
+
+			email, _ := cmd.Flags().GetString(flagEmail)
+			password, _ := cmd.Flags().GetString(flagPassword)
+			courseID, _ := cmd.Flags().GetString(flagCourseID)
+			redisAddr, _ := cmd.Flags().GetString(flagRedisAddr)
+
+			var refreshInterval time.Duration
+			{
+				str, _ := cmd.Flags().GetString(flagRefreshInterval)
+				duration, err := time.ParseDuration(str)
+				if err != nil {
+					return err
+				}
+
+				refreshInterval = duration
+			}
+
+			// Add a health endpoint.
+			srv.GET("/healthz", func(ctx *gin.Context) {
+				ctx.Status(http.StatusOK)
+			})
 
 			// Add the calendar endpoints.
 			{
@@ -36,7 +57,6 @@ func main() {
 
 				// Create the calendar cache.
 				var calCache calendar.Cache
-				redisAddr := cmd.Flag(flagRedisAddr).Value.String()
 				if redisAddr != "" {
 					logger.Print("using redis cache")
 
@@ -47,35 +67,27 @@ func main() {
 
 					calCache = cache
 				} else {
-					logger.Print("use in-memory cache")
+					logger.Print("using in-memory cache")
 
 					calCache = calcache.NewInMemoryCache()
 				}
 
-				// Create an AutoRefresher that can fetch the calendar on an interval.
-				calRefresher := calendar.NewAutoRefresher(
-					logger,
-					mlcal.MustNewClient(
-						cmd.Flag(flagEmail).Value.String(),
-						cmd.Flag(flagPassword).Value.String(),
-						cmd.Flag(flagCourse).Value.String(),
-					),
-					calCache,
-				)
+				client, err := mlcal.NewClient(email, password, courseID)
+				if err != nil {
+					return err
+				}
 
-				// Kick off the refresh and set up a refresh on an interval.
-				calRefresher.Refresh()
-				go calRefresher.RefreshOnInterval(
-					mustParseDuration(cmd.Flag(flagRefreshInterval).Value.String()),
-					log.New(os.Stdout, "[calendar-refresher]: ", log.LstdFlags),
-				)
+				// Create a calendar refresher and set it up to refresh on an interval.
+				calRefresher := calendar.NewAutoRefresher(logger, client, calCache)
+				go calRefresher.RefreshOnInterval(refreshInterval, log.New(os.Stdout, "[calendar-refresher]: ", log.LstdFlags))
 
-				r.GET("/calendar", resource.Handler(calendar.MakeGetCalendarResource(calRefresher)))
-				r.GET("/calendar/refresh", calendar.MakeRefreshCalendarEndpoint(calRefresher))
+				if err := addCalendarEndpoints(srv, calRefresher); err != nil {
+					return err
+				}
 			}
 
 			// Start server.
-			return r.Run()
+			return srv.Run()
 		},
 	}
 
@@ -85,8 +97,8 @@ func main() {
 	cmd.Flags().String(flagPassword, "", "the password used to log in")
 	cmd.MarkFlagRequired(flagPassword)
 
-	cmd.Flags().String(flagCourse, "", "the course ID to get cal for")
-	cmd.MarkFlagRequired(flagCourse)
+	cmd.Flags().String(flagCourseID, "", "the course ID to get cal for")
+	cmd.MarkFlagRequired(flagCourseID)
 
 	cmd.Flags().String(flagRefreshInterval, "24h", "the calendar refresh interval in time.ParseDuration format")
 
@@ -96,13 +108,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error running mlcal api: %s\n", err)
 		os.Exit(1)
 	}
-}
-
-func mustParseDuration(str string) time.Duration {
-	d, err := time.ParseDuration(str)
-	if err != nil {
-		panic(err)
-	}
-
-	return d
 }

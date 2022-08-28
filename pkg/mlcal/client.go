@@ -188,12 +188,3 @@ func NewClient(email, password, courseID string) (Client, error) {
 
 	return &client{&httpClient, email, password, courseID}, nil
 }
-
-func MustNewClient(email, password, courseID string) Client {
-	client, err := NewClient(email, password, courseID)
-	if err != nil {
-		panic(err)
-	}
-
-	return client
-}
