@@ -53,7 +53,7 @@ func main() {
 
 			// Add the calendar endpoints.
 			{
-				logger := log.New(os.Stdout, "[calendar] ", log.LstdFlags)
+				logger := log.New(os.Stdout, fmt.Sprintf("[calendar - %d] ", os.Getpid()), log.LstdFlags)
 
 				// Create the calendar cache.
 				var calCache calendar.Cache
@@ -79,7 +79,7 @@ func main() {
 
 				// Create a calendar refresher and set it up to refresh on an interval.
 				calRefresher := calendar.NewAutoRefresher(logger, client, calCache)
-				go calRefresher.RefreshOnInterval(refreshInterval, log.New(os.Stdout, "[calendar-refresher]: ", log.LstdFlags))
+				go calRefresher.RefreshOnInterval(refreshInterval, log.New(os.Stdout, fmt.Sprintf("[calendar-refresher - %d]: ", os.Getpid()), log.LstdFlags))
 
 				if err := addCalendarEndpoints(srv, calRefresher); err != nil {
 					return err
